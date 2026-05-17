@@ -5,53 +5,51 @@ import {baseUrl, periodMonth} from '../utils/constants.js';
 const Contact = () => {
     const [planets, setPlanets] = useState(() => {
         const planets = JSON.parse(localStorage.getItem('planets'));
-        if (planets && (Date.now() - planets.timestamp < periodMonth)) {
+        if (planets && ((Date.now() - planets.time) < periodMonth)) {
             return planets.payload;
+        } else {
+            return ['wait...']
         }
     });
 
     useEffect(() => {
-        if (!planets) {
-        fetch(baseUrl + '/v1/planets')
-            .then(response => response.json())
-            .then(data => {
-                const planets = data.map(planet => planet.name);
-                setPlanets(planets);
-                localStorage.setItem('planets', JSON.stringify({
-                    payload: planets,
-                    timestamp: Date.now()
-                }));
-            })
-            .catch(error => console.error('Error fetching planets:', error));
+        const getPlanets = async () => {
+            const res = await fetch(`${baseUrl}/v1/planets`);
+            const data = await res.json();
+            const planets = data.map(item => item.name);
+            setPlanets(planets);
+            localStorage.setItem('planets', JSON.stringify({
+                payload: planets,
+                time: Date.now()
+            }));
         }
-    }, []);
+
+        if (planets.length === 1){
+            getPlanets().then(() => console.log('Planets were loaded'));
+        }
+    }, [])
 
     return (
-        <div className="container">
-            <form>
-
-                <label htmlFor="fname">First Name</label>
-                <input type="text" id="fname" name="firstname" placeholder="Your name.." />
-
-                <label htmlFor="lname">Last Name</label>
-                <input type="text" id="lname" name="lastname" placeholder="Your last name.." />
-
-                <label htmlFor="planet">Planet</label>
-                <select id="planet" name="planet">
-                    {planets && planets.map((planet, index) => (
-                        <option key={index} value={planet}>
-                            {planet}
-                        </option>
-                    ))}
+        <form className="container" onSubmit={e => {
+            e.preventDefault();
+        }}>
+            <label>First Name
+                <input type="text" name="firstname" placeholder="Your name.."/>
+            </label>
+            <label>Last Name
+                <input type="text" name="lastname" placeholder="Your last name.."/>
+            </label>
+            <label>Planet
+                <select name="planet">
+                    {planets.map(item => <option value={item} key={item}>{item}</option>)}
                 </select>
+            </label>
 
-                <label htmlFor="subject">Subject</label>
-                <textarea id="subject" name="subject" placeholder="Write something.." style={{ height: '200px' }}></textarea>
-
-                <input type="submit" className="btn btn-danger mx-1" value="Submit" />
-
-            </form>
-        </div>
+            <label>Subject
+                <textarea name="subject" placeholder="Write something.."></textarea>
+            </label>
+            <button type="submit">Submit</button>
+        </form>
     )
 }
 
