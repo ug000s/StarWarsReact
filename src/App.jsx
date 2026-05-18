@@ -10,10 +10,10 @@ function App() {
     const [page, setPage] = useState(navItems[0]);
 
     return (
-        <StarWarsContext value={setPage}>
+        <StarWarsContext value={{page, changePage: setPage}}>
             <div className={'container-fluid'}>
                 <Header/>
-                <Main page={page}/>
+                <Main/>
                 <Footer/>
             </div>
         </StarWarsContext>
